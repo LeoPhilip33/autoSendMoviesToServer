@@ -6,17 +6,7 @@ from send2trash import send2trash
 import config
 from tqdm import tqdm
 
-def sendFilm(movie):
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(
-        config.hostname,
-        port=config.port,
-        username=config.username,
-        password=config.password,
-        timeout=config.timeout
-    )
-    
+def sendFilm(movie):  
     nameMovie = os.path.basename(movie)
     localPath = os.path.join(config.localPath, nameMovie)
     remotePath = config.remotePath + '/' + nameMovie
@@ -45,9 +35,6 @@ def sendFilm(movie):
     
     except Exception as e:
         print(f"Error transferring {nameMovie} movie. {e}")
-    
-    ssh.close()
-
 
 movies = sorted(glob.glob(os.path.join(config.localPath, "*.mp4")))
 lastElement = movies.pop()
@@ -58,8 +45,21 @@ print("2. Exit")
 choice = input("Enter your choice: ")
 
 if choice == '1':
-    for movie in movies:
-        sendFilm(movie)
+    if len(movies) >= 1:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(
+            config.hostname,
+            port=config.port,
+            username=config.username,
+            password=config.password,
+            timeout=config.timeout
+        )
+        for movie in movies:
+            sendFilm(movie)
+        ssh.close()
+    else:
+        print('There are no films to send.')
     
 elif choice == '2':
     print('Exiting...')
