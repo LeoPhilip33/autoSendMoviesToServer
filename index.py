@@ -37,15 +37,16 @@ def sendFilm(movie):
         print(f"Error transferring {nameMovie} movie. {e}")
 
 movies = sorted(glob.glob(os.path.join(config.localPath, "*.mp4")))
-lastElement = movies.pop()
 
 print(f"{len(movies)} movies found.")
-print("1. Send all available movies")
-print("2. Exit")
+print("1. Send all movies except the last one.")
+print("2. Send everything movies!")
+print("3. Exit")
 choice = input("Enter your choice: ")
 
 if choice == '1':
-    if len(movies) >= 1:
+    if len(movies) > 0:
+        lastElement = movies.pop()
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(
@@ -62,6 +63,20 @@ if choice == '1':
         print('There are no films to send.')
     
 elif choice == '2':
+    if len(movies) > 0:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(
+            config.hostname,
+            port=config.port,
+            username=config.username,
+            password=config.password,
+            timeout=config.timeout
+        )
+        for movie in movies:
+            sendFilm(movie)
+        ssh.close()
+elif choice == '3':
     print('Exiting...')
 else:
     print('Invalid choice.')
